@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-cn">
+
 <head>
   <meta charset="UTF-8">
   <title>Document</title>
@@ -8,15 +9,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
 </head>
+
 <body>
-  <div id="app"></div>
+  <div id="app">断网中...</div>
   <script>
     window.$docsify = {
-      name: '',
-      repo: ''
+      name: '染念的知识库',
+      repo: 'https://github.com/dyedd/notebook',
+      coverpage: true,
+      loadSidebar: true,
+      sidebarDisplayLevel: 1,
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md'
+      },
+      loadNavbar: true,
+      maxLevel: 5,
+      subMaxLevel: 3,
+      mergeNavbar: true,
+      auto2top: true
     }
   </script>
   <!-- Docsify v4 -->
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
 </body>
+
 </html>

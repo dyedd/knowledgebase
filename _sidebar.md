@@ -1,0 +1,5 @@
+- [人工智能](/ai)
+- [高性能计算](/hpc)
+  - [SYCL](/hpc/sycl)
+- [论文](/papers)
+- [会议](/sessions)
