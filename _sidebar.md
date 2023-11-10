@@ -1,5 +1,8 @@
 - [人工智能](/ai)
+  - [jupyter](/ai/jupyter)
+  - [Pytorch](/ai/pytorch)
 - [高性能计算](/hpc)
   - [SYCL](/hpc/sycl)
+  - [DCU](/hpc/DCU)
 - [论文](/papers)
 - [会议](/sessions)
