@@ -225,15 +225,3 @@ db文件是 sqlite 数据库文件，可用 sqlite 所支持的数据库查看�
 csv文件分别是 hip/has API 以及 GPU 活动的 trace 结果，可以使用 Excel 查看。
 json文件可以使用 chrome 浏览器进行可视化查看，详细查看各个 stream 中内存拷贝和 kernel 函数执行的过程。
 
-## MIGraphX推理框架
-
-### 简介
-
-MIGraphX是一款用于**DCU**上的深度学习推理引擎。MIGraphX能将深度学习框架（Tensorflow,Pytorch等）训练好的算法模型转换为MIGraphX IR表示的计算图，并提供端到端的模型优化、代码⽣成以及推理业务部署能⼒ 。 MIGraphX致⼒于为用户提供灵活、易⽤的编程接⼝以及配套⼯具，让用户能够专注于推理业务开发和部署本⾝ ，而无需过多关注底层硬件细节，显著提高用户的开发效率。
-
-- 支持多种精度推理，比如FP32，FP16，INT8 
-- 支持多语言API，包括C++和Python 
-- 支持动态shape 
-- 支持模型序列化 
-- 支持调试 
-- 提供性能分析⼯具

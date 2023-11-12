@@ -3,6 +3,7 @@
   - [Pytorch](/ai/pytorch)
 - [高性能计算](/hpc)
   - [SYCL](/hpc/sycl)
-  - [DCU](/hpc/DCU)
+- [DCU](/dcu)
+  - [MIGraphX](/dcu/MIGraphX)
 - [论文](/papers)
 - [会议](/sessions)
