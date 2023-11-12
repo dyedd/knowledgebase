@@ -56,13 +56,13 @@ MIGraphX采用静态图模式，在编译优化阶段，MIGrahpX实现了如下�
 
 ### 安装方法
 
-- 使用镜像(推荐) 下载地址：https://sourcefind.cn/#/main-page，根据需要选择合适的镜像 
+- 使用镜像(推荐) [下载地址](https://sourcefind.cn/#/main-page)，根据需要选择合适的镜像 
 
 例如`docker pull image.sourcefind.cn:5000/dcu/admin/base/migraphx:4.0.0-centos7.6-dtk23.04.1-py38-latest`
 
 在使用MIGraphX之前，需要设置容器中的环境变量：`source /opt/dtk/env.sh`，如果需要在python中使用migraphx，还需要设置PYTHONPATH ：`export PYTHONPATH=/opt/dtk/lib:$PYTHONPATH`
 
-- 使用安装包，安装包下载地址：https://cancon.hpccube.com:65024/4/main/migraphx，根据不同的系统选择合适的安装包
+- 使用安装包，[安装包下载地址](https://cancon.hpccube.com:65024/4/main/migraphx)，根据不同的系统选择合适的安装包
   - 安装dtk，上面的光源dtk镜像或者[安装包](https://cancon.hpccube.com:65024/1/main)，然后将下载好的安装包安装到/opt目录下，最后创建一个软连接/opt/dtk，使得该软连接指向dtk的安装目录，注意：一定要创建软连接/opt/dtk，否则MIGraphX无法正常使用。
   - 安装half`wget https://github.com/pfultz2/half/archive/1.12.0.tar.gz`,解压（`tar -xvf ...tar.gz`）后将include目录下的half.hpp拷贝到dtk目录下的include目录：`cp half-1.12.0/include/half.hpp /opt/dtk/include/`
   - 安装sqlite:[下载地址](https://www.sqlite.org/download.html)，解压，切换目录，然后`./configure && make && make install`，最后设置环境变量：`export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH`和`export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH`
