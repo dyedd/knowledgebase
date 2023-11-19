@@ -115,7 +115,9 @@ hipprof是DCU Toolkit的性能分析工具，主要功能是根据用户的指�
   指的是在device Id是0的设备上发生的核函数的运行情况，下边的数字分别代表不同的stream，0代表的是默认stream。
   由于核函数或者memcpy和hip应用之间存在异步执行的情况，在点击选择核函数后，页面下部会显示一些详细信息及事件信息，点击Preceding events后边的链接，可以显示出对应hip接口的时间情况。
 
-### torchprof介绍
+### pytorch in DCU分析
+
+#### torchprof介绍
 
 torchprof用于Pytorch模型的逐层分析的最小依赖库。所有指标都是使用PyTorch autograd分析器得出的。torchprof仅在**PyTorch 1.8以下版本中**使用，<u>PyTorch 1.9及以上版本中使用Torch.profiler代替</u>。
 
@@ -171,6 +173,132 @@ with torchprof.Profile(model, paths=paths) as prof:
  
 print(prof)
 ```
+
+#### torch.autograd.profiler介绍
+
+这是pytorch自带的分析工具，它可以捕获 PyTorch 操作的信息，但不能得到详细的 GPU 硬件级信息，也不能提供可视化支持。
+
+> 未来将被移除！
+
+使用方法：
+
+```python
+with torch.autograd.profiler.profile(enabled=True, use_cuda=True, record_shapes=False) as prof:
+
+
+
+   需要进行性能分析的代码
+
+
+
+print(prof.key_averages().table(sort_by="self_cpu_time_total"))
+```
+
+#### 推荐*：torch profiler介绍
+
+随着 PyTorch 1.8.1的发布，一个全新改进的性能调试工具 PyTorch Profiler 来了。作为微软和 Facebook 合作的一部分，PyTorch Profiler 是一个开源工具，可以对大规模深度学习模型进行准确高效的性能分析和故障排除。
+
+这个新的分析器收集 GPU 硬件和 PyTorch 相关信息，将它们关联起来，对模型中的瓶颈进行自动检测，并生成如何解决这些瓶颈的建议。来自 profiler 的所有信息都可以在 TensorBoard 中为用户可视化。新的 Profiler API 在 PyTorch 中得到了原生支持，并且提供了迄今为止最简单的体验，用户可以在不安装任何附加包的情况下分析他们的模型，并且可以通过新的 PyTorch Profiler 插件在 TensorBoard 中立即查看结果。
+
+PyTorch Profiler 是 PyTorch autograd profiler 的新一代版本。它有一个新的模块命名空间 *torch.profiler*，但保持了与 autograd profiler APIs 的兼容性。PyTorch Profiler 使用了一个新的 GPU 性能分析引擎，用 Nvidia CUPTI APIs 构建，能够高保真地捕获 GPU 内核事件。要分析模型训练循环，请将代码包到 profiler 上下文管理器中，如下所示。
+
+```python3
+import torch
+from torch.profiler import tensorboard_trace_handler
+with torch.profiler.profile(
+    schedule=torch.profiler.schedule(
+        wait=2,
+        warmup=2,
+        active=6,
+        repeat=1),
+    # 注意路径
+    on_trace_ready=tensorboard_trace_handler(
+        dir_name='working/performance/'),
+    activities=[
+        torch.profiler.ProfilerActivity.CPU,
+        torch.profiler.ProfilerActivity.CUDA
+    ],
+    with_flops=True，
+) as profiler:
+    for step, data in enumerate(trainloader, 0):
+        print("step:{}".format(step))
+        inputs, labels = data[0].to(device=device), data[1].to(device=device)
+
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        #注意
+        profiler.step()
+
+#如果使用可视化分析了，这里的print可以删了
+print(profiler.key_averages().table(
+    sort_by="self_cuda_time_total", row_limit=-1))
+#将分析文件保存为保存至文件，使用Chrome://tracing打开，方便更加直观的查看性能分析结果。
+profiler.export_chrome_trace("trace.json")
+```
+
+API 的参数如下：
+
+- activities：要使用的活动组列表。支持的值为 torch.profiler.ProfilerActivity.CPU 和 torch.profiler.ProfilerActivity.CUDA。默认值为 ProfilerActivity.CPU 和 (如果可用) ProfilerActivity.CUDA。
+- schedule：一个可调用对象，它以步数 (int) 作为单个参数，并返回 ProfilerAction 值，该值指定在每个步骤执行的 profiler 操作。参数 *schedule* 允许你限制配置文件中包含的训练步骤的数量，以减少收集的数据量，并通过关注重要的内容简化可视化分析。*tensorboard_trace_handler* 自动将性能分析结果保存到磁盘，以便在 TensorBoard 中进行后续分析。`schedule=torch.profiler.schedule(wait=2, warmup=2, active=6,repeat=1),`这个意思是profiler将跳过第一步/迭代，在第2，3步预热，记录4,5,6,7,8,9次迭代，循环1次。
+
+- on_trace_ready：一个可调用对象，它在 schedule 在 profiling 期间返回 - ProfilerAction.RECORD_AND_SAVE 时，会在每个步骤被调用。
+- record_shapes：是否保存操作的输入形状信息。
+- profile_memory：是否跟踪张量内存分配/释放。
+- with_stack：是否记录操作的源信息 (文件和行号)。
+- with_flops：是否使用公式估计特定操作 (矩阵乘法和 2D 卷积) 的 FLOPs (浮点操作数)。
+- with_modules：是否记录操作的调用堆栈中对应的模块层次结构 (包括函数名)。例如，如果模块 A 的 forward 调用了模块 B 的 forward，其中包含一个 aten::add 操作，那么 aten::add 的模块层次结构为 A.B。请注意，此功能目前仅支持 TorchScript 模型，不支持 eager 模式模型。
+- experimental_config：Kineto 库功能使用的一组实验性选项。请注意，不保证向后兼容性。
+
+要在 TensorBoard 中查看分析会话的结果，请安装 PyTorch Profiler TensorBoard 插件包。
+
+```bash
+pip install torch_tb_profiler
+```
+
+> VS Code 将 TensorBoard 集成到代码编辑器中，实现了对 PyTorch Profiler 的支持。不需要安装Profiler 工具就可以直接使用。
+
+如何运行？ 按往常一样执行命令即可。
+
+如何可视化？在`on_trace_ready=torch.profiler.tensorboard_trace_handler(dir_name)`已经生成了结果文件，然后只需要
+
+```
+tensorboard --logdir dir_name
+```
+
+on_trace_ready升级版：
+
+```python
+def trace_handler(prof):
+    print(prof.key_averages().table(
+        sort_by="self_cuda_time_total", row_limit=-1))
+    # prof.export_chrome_trace("/tmp/test_trace_" + str(prof.step_num) + ".json")
+
+with torch.profiler.profile(
+    activities=[
+        torch.profiler.ProfilerActivity.CPU,
+        torch.profiler.ProfilerActivity.CUDA,
+    ],
+
+    schedule=torch.profiler.schedule(
+        wait=1,
+        warmup=1,
+        active=2,
+        repeat=1),
+    on_trace_ready=trace_handler
+    # on_trace_ready=torch.profiler.tensorboard_trace_handler('./log')
+    # used when outputting for tensorboard
+    ) as p:
+        for iter in range(N):
+            code_iteration_to_profile(iter)
+            # send a signal to the profiler that the next iteration has started
+            p.step()
+```
+
+
 
 ### rocprof介绍
 

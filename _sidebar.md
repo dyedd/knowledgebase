@@ -1,6 +1,7 @@
 - [人工智能](/ai/)
   - [jupyter](/ai/jupyter)
   - [Pytorch](/ai/pytorch)
+  - [扩散模型](/ai/diffusion)
 - [高性能计算](/hpc/)
   - [SYCL](/hpc/sycl)
 - [DCU](/dcu/)
